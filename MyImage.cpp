@@ -36,7 +36,17 @@ void CMyImage::DrawCenter(Graphics *g, int x, int y, int xCenter, int yCenter)
 	g->DrawImage(m_pImage, x, y, 0, 0, m_pImage->GetWidth(), m_pImage->GetHeight(), Gdiplus::UnitPixel);
 }
 
+void CMyImage::DrawCenter(Graphics* g, int dstX, int dstY, int srcX, int srcY, int width, int height, int xCenter, int yCenter)
+{
+	// DO SOMETHING
+}
+
 void CMyImage::Draw(Graphics *g, int x, int y, int width, int height)
 {
 	g->DrawImage(m_pImage, x, y, width, height);
+}
+
+void CMyImage::Draw(Graphics* g, int dstX, int dstY, int srcX, int srcY, int width, int height)
+{
+	g->DrawImage(m_pImage, dstX, dstY, srcX, srcY, width, height, Gdiplus::UnitPixel);
 }

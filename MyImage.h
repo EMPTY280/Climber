@@ -18,5 +18,7 @@ public:
 	void Load(char *lpstrFile);
 	void Draw(Graphics *g, int x, int y);
 	void DrawCenter(Graphics *g, int x, int y, int xCenter, int yCenter);
+	void DrawCenter(Graphics* g, int dstX, int dstY, int srcX, int srcY, int width, int height, int xCenter, int yCenter);
 	void Draw(Graphics *g, int x, int y, int width, int height);
+	void Draw(Graphics* g, int dstX, int dstY, int srcX, int srcY, int width, int height);
 };

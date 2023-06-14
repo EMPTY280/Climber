@@ -13,7 +13,12 @@ public:
 
 	int AddData(T* data);
 	T& GetData(int index) const;
-	int GetLength() const;
+	int GetSize() const;
+
+	T& operator[](int index)
+	{
+		return *datalist.at(index);
+	}
 };
 
 
@@ -36,7 +41,7 @@ template<typename T>
 int DataList<T>::AddData(T* data)
 {
 	datalist.push_back(data);
-	return GetLength() - 1;
+	return GetSize() - 1;
 }
 
 template<typename T>
@@ -46,7 +51,7 @@ T& DataList<T>::GetData(int index) const
 }
 
 template<typename T>
-int DataList<T>::GetLength() const
+int DataList<T>::GetSize() const
 {
 	return datalist.size();
 }

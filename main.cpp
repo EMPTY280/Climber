@@ -4,23 +4,29 @@
 #include "DSpriteManager.h"
 
 #include "DataList.h"
+#include "MyObject.h"
+#include "Player.h"
 
+#pragma region GraphicBuffer
 Graphics *g_BackBuffer;
 Graphics *g_MainBuffer;
 Bitmap   *g_Bitmap;
+#pragma endregion
 
+#pragma region ForwardDeclaration
 void OnUpdate(HWND hWnd, DWORD tick);
 void CreateBuffer(HWND hWnd, HDC hDC);
 void ReleaseBuffer(HWND hWnd, HDC hDC);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void inline Initialize();
+#pragma endregion
+
+const int WINDOW_W = 480;
+const int WINDOW_H = 640;
 
 DataList<CMyImage> imageList;
-
-double g_y = 10;
-double g_x = 0;
-double g_vspeed = 0;
-double g_gravity = 9.8;
+Player* player;
+DataList<MyObject> objectList;
 
 std::map<int, bool> keys;
 
@@ -45,9 +51,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		return 0;		
 	}
 
+	//					테두리	 제목표시줄    최소화 상자     시스템 메뉴   보이기
+	DWORD wndStyle = WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE | WS_POPUP;
+
+	RECT wndRect = { 0, 0, WINDOW_W, WINDOW_H };
+	AdjustWindowRect(&wndRect, wndStyle, false);
+
+	int width = wndRect.right - wndRect.left;
+	int height = wndRect.bottom - wndRect.top;
+
 	HWND hwnd = CreateWindow("myGame", "Game Window",
-		WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX,
-		100, 100, 800, 600, NULL, NULL, hInstance, NULL);	
+		wndStyle, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, hInstance, NULL);
 
 	if(hwnd == NULL)
 	{
@@ -113,8 +127,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void inline Initialize()
 {
 	CMyImage* img = new CMyImage();
+
 	img->Load("./Data/Image/Player.png");
 	imageList.AddData(img);
+
+	CMyImage* img2 = new CMyImage();
+	img2->Load("./Data/Image/block.png");
+	imageList.AddData(img2);
+	
+	player = new Player(30, 30, img);
+	player->SetCollisionTable(&objectList);
+
+	objectList.AddData(new MyObject(64, 64, img2, Gdiplus::Rect(64, 64, 32, 32)));
+	objectList.AddData(new MyObject(96, 64, img2, Gdiplus::Rect(96, 64, 32, 32)));
 }
 
 void CreateBuffer(HWND hWnd, HDC hDC)
@@ -150,25 +175,38 @@ void OnUpdate(HWND hWnd, DWORD tick)
 
 	double deltaTime = static_cast<double>(tick) * 0.001;
 
-	Color color(255, 255, 255);
+	/*
+		
+		!! RENDER !!
+
+	*/
+
+	Color color(128, 128, 128);
 	g_BackBuffer->Clear(color);
 
+	player->Draw(g_BackBuffer);
 
-	imageList.GetData(0).Draw(g_BackBuffer, g_x, g_y);
+	int objSize = objectList.GetSize();
 
-	if (keys[VK_SPACE] && g_y == 400)
-		g_vspeed = -5;
-	if (keys[VK_LEFT])
-		g_x -= 300 * deltaTime;
-	if (keys[VK_RIGHT])
-		g_x += 300 * deltaTime;
-
-	g_vspeed += g_gravity * deltaTime;
-	g_y += g_vspeed;
-
-	if (g_y >= 400)
+	for (int i = 0; i < objSize; i++)
 	{
-		g_vspeed = 0;
-		g_y = 400;
+		objectList[i].Draw(g_BackBuffer);
 	}
+
+	/*
+	
+		!! UPDATE !!
+	
+	*/
+
+	double moveSpeed = 300 * deltaTime;
+
+	player->OnUpdate(deltaTime);
+	
+	if (keys[VK_RIGHT] == true)
+		player->SetPos(moveSpeed, 0, true);
+	if (keys[VK_LEFT] == true)
+		player->SetPos(-moveSpeed, 0, true);
+	if (keys[VK_SPACE] == true)
+		player->Jump();
 }
