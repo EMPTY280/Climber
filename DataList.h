@@ -5,15 +5,31 @@ template <typename T>
 class DataList
 {
 private:
-	std::vector<T*> datalist;
+	std::vector<T> datalist;
 
 public:
-	DataList();
-	~DataList();
+	~DataList() { }
 
-	int AddData(T* data);
-	T& GetData(int index) const;
-	int GetSize() const;
+	int AddData(T data)
+	{
+		datalist.push_back(data);
+		return GetSize() - 1;
+	}
+
+	void DeleteData(int index)
+	{
+		datalist.erase(datalist.begin() + index);
+	}
+
+	T& GetData(int index) const
+	{
+		return datalist.at(index);
+	}
+
+	int GetSize() const
+	{
+		return datalist.size();
+	}
 
 	T& operator[](int index)
 	{
@@ -21,37 +37,46 @@ public:
 	}
 };
 
-
 template <typename T>
-DataList<T>::DataList()
+class DataList<T*>
 {
+private:
+	std::vector<T*> datalist;
 
-}
-
-template <typename T>
-DataList<T>::~DataList()
-{
-	for (T* ele : datalist)
+public:
+	~DataList()
 	{
-		delete ele;
+		for (T* ele : datalist)
+		{
+			delete ele;
+		}
 	}
-}
 
-template<typename T>
-int DataList<T>::AddData(T* data)
-{
-	datalist.push_back(data);
-	return GetSize() - 1;
-}
+	int AddData(T* data)
+	{
+		datalist.push_back(data);
+		return GetSize() - 1;
+	}
+	
+	void DeleteData(int index)
+	{
+		T* data = datalist.at(index);
+		datalist.erase(datalist.begin() + index);
+		delete data;
+	}
 
-template<typename T>
-T& DataList<T>::GetData(int index) const
-{
-	return *datalist.at(index);
-}
+	T& GetData(int index) const
+	{
+		return *datalist.at(index);
+	}
 
-template<typename T>
-int DataList<T>::GetSize() const
-{
-	return datalist.size();
-}
+	int GetSize() const
+	{
+		return datalist.size();
+	}
+
+	T& operator[](int index)
+	{
+		return *datalist.at(index);
+	}
+};

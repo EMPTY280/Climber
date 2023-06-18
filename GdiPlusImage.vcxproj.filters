@@ -33,6 +33,9 @@
     <ClCompile Include="Player.cpp">
       <Filter>오브젝트</Filter>
     </ClCompile>
+    <ClCompile Include="Block.cpp">
+      <Filter>오브젝트</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyImage.h">
@@ -45,6 +48,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
+      <Filter>오브젝트</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
       <Filter>오브젝트</Filter>
     </ClInclude>
   </ItemGroup>

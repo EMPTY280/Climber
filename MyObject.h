@@ -9,7 +9,7 @@ protected:
 	Gdiplus::Rect rect;
 
 	// 비활성화 여부
-	bool Active = true;
+	bool active = true;
 
 public:
 	MyObject(double x, double y);
@@ -24,10 +24,13 @@ public:
 	const Gdiplus::Rect& GetRect() const;
 
 	void Draw(Gdiplus::Graphics* g);
+	void Draw(Gdiplus::Graphics* g, int xx, int yy);
+	void Draw(Gdiplus::Graphics* g, int xx, int yy, CMyImage* img);
 	bool Intersect(Gdiplus::Rect& r);
 
 	void UpdateRect();
 	Gdiplus::Rect GetRect();
 
-	void SetActive(bool b);
+	bool GetActive();
+	virtual void SetActive(bool b);
 };

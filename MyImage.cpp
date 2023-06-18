@@ -50,3 +50,8 @@ void CMyImage::Draw(Graphics* g, int dstX, int dstY, int srcX, int srcY, int wid
 {
 	g->DrawImage(m_pImage, dstX, dstY, srcX, srcY, width, height, Gdiplus::UnitPixel);
 }
+
+void CMyImage::Flip()
+{
+	m_pImage->RotateFlip(RotateFlipType::RotateNoneFlipX);
+}

@@ -8,6 +8,9 @@ MyObject::~MyObject() { }
 
 void MyObject::SetPos(const double& x, const double& y, bool relative)
 {
+	if (!active)
+		return;
+
 	if (relative)
 	{
 		this->x += x;
@@ -43,6 +46,18 @@ void MyObject::Draw(Gdiplus::Graphics* g)
 	image->Draw(g, x, y);
 }
 
+void MyObject::Draw(Gdiplus::Graphics* g, int xx, int yy)
+{
+	if (image == nullptr)
+		return;
+	image->Draw(g, x + xx, y + yy);
+}
+
+void MyObject::Draw(Gdiplus::Graphics* g, int xx, int yy, CMyImage* img)
+{
+	img->Draw(g, x + xx, y + yy);
+}
+
 bool MyObject::Intersect(Gdiplus::Rect& r)
 {
 	return rect.Intersect(r);
@@ -59,7 +74,12 @@ Gdiplus::Rect MyObject::GetRect()
 	return rect;
 }
 
+bool MyObject::GetActive()
+{
+	return active;
+}
+
 void MyObject::SetActive(bool b)
 {
-	Active = b;
+	active = b;
 }
