@@ -19,6 +19,7 @@ void CreateBuffer(HWND hWnd, HDC hDC);
 void ReleaseBuffer(HWND hWnd, HDC hDC);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void inline Initialize();
+void LoadImage(char*);
 #pragma endregion
 
 const int WINDOW_W = 480;
@@ -26,7 +27,7 @@ const int WINDOW_H = 640;
 
 DataList<CMyImage> imageList;
 Player* player;
-DataList<MyObject> objectList;
+DataList<MyObject> blockList;
 
 std::map<int, bool> keys;
 
@@ -78,7 +79,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Initialize();
 
 	MSG msg;
-	DWORD tick = GetTickCount();
+	DWORD tick = GetTickCount64();
 	while(1)
 	{	
 		//윈도우 메세지가 있을경우 메세지를 처리한다.
@@ -91,7 +92,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		}
 		else //메세지가 없을 경우 게임 루프를 실행한다.
 		{		
-			DWORD curTick = GetTickCount();
+			DWORD curTick = GetTickCount64();
 			OnUpdate(hwnd, curTick - tick);
 			tick = curTick;
 
@@ -126,20 +127,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void inline Initialize()
 {
-	CMyImage* img = new CMyImage();
-
-	img->Load("./Data/Image/Player.png");
-	imageList.AddData(img);
-
-	CMyImage* img2 = new CMyImage();
-	img2->Load("./Data/Image/block.png");
-	imageList.AddData(img2);
+	LoadImage("./Data/Image/Player.png");	// 0 Player
+	LoadImage("./Data/Image/block.png");	// 1 Block
 	
-	player = new Player(30, 30, img);
-	player->SetCollisionTable(&objectList);
+	player = new Player(30, 30, &imageList[0]);
 
-	objectList.AddData(new MyObject(64, 64, img2, Gdiplus::Rect(64, 64, 32, 32)));
-	objectList.AddData(new MyObject(96, 64, img2, Gdiplus::Rect(96, 64, 32, 32)));
+	blockList.AddData(new MyObject(0, 68, &imageList[1]));
+	blockList.AddData(new MyObject(32, 10, &imageList[1]));
+	blockList.AddData(new MyObject(64, 100, &imageList[1]));
+	blockList.AddData(new MyObject(96, 100, &imageList[1]));
+	blockList.AddData(new MyObject(128, 100, &imageList[1]));
+	blockList.AddData(new MyObject(160, 100, &imageList[1]));
+	blockList.AddData(new MyObject(192, 68, &imageList[1]));
+
+	for (int i = 0; i < 10; i++)
+	{
+		blockList.AddData(new MyObject(32 * i, 150, &imageList[1]));
+	}
+}
+
+void LoadImage(char* dir)
+{
+	CMyImage* img = new CMyImage();
+	img->Load(dir);
+	imageList.AddData(img);
 }
 
 void CreateBuffer(HWND hWnd, HDC hDC)
@@ -174,39 +185,94 @@ void OnUpdate(HWND hWnd, DWORD tick)
 		return;
 
 	double deltaTime = static_cast<double>(tick) * 0.001;
-
 	/*
-		
-		!! RENDER !!
+	
+		!! INPUT !!
 
 	*/
 
+	if (keys[VK_SPACE] == true)
+		player->Jump();
+	if (keys[VK_RIGHT] == true)
+		player->Move(deltaTime, false);
+	if (keys[VK_LEFT] == true)
+		player->Move(deltaTime, true);
+	if (keys[VK_SHIFT] == true)
+		player->SetPos(0, 0, false);
+
+	/*
+
+	!! UPDATE !!
+
+	*/
+
+	int size = blockList.GetSize();
+
+	for (int i = 0; i < size; i++)
+	{
+		MyObject& block = blockList[i];
+
+		// 블록 좌우 판정
+		if (Rect(player->GetX() + player->GetHSpeed() * 100 * deltaTime, player->GetY(), 32, 32).Intersect(block.GetRect()))
+		{
+			player->ResetHSpeed();
+
+			if (player->GetX() <= block.GetX())
+				player->SetPos(block.GetX() - 32, player->GetY(), false);
+			else
+				player->SetPos(block.GetX() + 32, player->GetY(), false);
+
+
+			break;
+		}
+	}
+
+	player->OnUpdate(deltaTime);
+	player->SetGrounded(false);
+
+	for (int i = 0; i < size; i++)
+	{
+		MyObject& block = blockList[i];
+
+		// 블록 상하 판정
+		if (Rect(player->GetX(), player->GetY(), 32, 33).Intersect(block.GetRect()))
+		{
+			player->ResetVspeed();
+
+			if (player->GetY() <= block.GetY()) // 착지
+			{
+				player->SetGrounded(true);
+				player->SetPos(player->GetX(), block.GetY() - 32, false);
+			}
+			else // 머리
+				player->SetPos(player->GetX(), block.GetY() + 32, false);
+
+			break;
+		}
+	}
+
+
+	if (player->GetGrounded())
+		player->SetPos(0, 100 * deltaTime, true);
+	for (int i = 0; i < size; i++)
+	{
+		MyObject& block = blockList[i];
+		block.SetPos(0, 100 * deltaTime, true);
+	}
+
+	/*
+
+	!! RENDER !!
+
+	*/
 	Color color(128, 128, 128);
 	g_BackBuffer->Clear(color);
 
 	player->Draw(g_BackBuffer);
 
-	int objSize = objectList.GetSize();
-
+	int objSize = blockList.GetSize();
 	for (int i = 0; i < objSize; i++)
 	{
-		objectList[i].Draw(g_BackBuffer);
+		blockList[i].Draw(g_BackBuffer);
 	}
-
-	/*
-	
-		!! UPDATE !!
-	
-	*/
-
-	double moveSpeed = 300 * deltaTime;
-
-	player->OnUpdate(deltaTime);
-	
-	if (keys[VK_RIGHT] == true)
-		player->SetPos(moveSpeed, 0, true);
-	if (keys[VK_LEFT] == true)
-		player->SetPos(-moveSpeed, 0, true);
-	if (keys[VK_SPACE] == true)
-		player->Jump();
 }

@@ -5,22 +5,35 @@
 class Player : public MyObject
 {
 private:
-	double gravityPower = 9.8;
+	double gravityPower = 15;
+	double gravityMax = 32;
+	double jumpPower = 6;
+
+	double moveAccel = 30;
+	double moveSpeedMax = 30;
+
 	double vSpeed = 0;
-	double jumpPower = 5;
+	double hSpeed = 0;
+	double hFriction = 20;
 
 	bool isGrounded = false;
-
-	DataList<MyObject>* collisionTable;
+	bool isLeftBlocked = false;
+	bool IsRightBlocked = false;
 
 public:
 	Player(double x, double y, CMyImage* image);
-
-	virtual void SetPos(const double& x, const double& y, bool relative) override;
-
-	void OnUpdate(double deltaTime) override;
+	
+	void Move(double dt, bool left);
 	void Jump();
 
-	void SetCollisionTable(DataList<MyObject>* t);
+	void OnUpdate(double dt);
+
+	void SetGrounded(bool b);
+	bool GetGrounded();
+
+	Gdiplus::Rect GetRect();
+	double GetHSpeed();
+	void ResetHSpeed();
+	void ResetVspeed();
 };
 

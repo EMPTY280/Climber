@@ -2,59 +2,74 @@
 
 Player::Player(double x, double y, CMyImage* image) : MyObject(x, y, image) { }
 
-void Player::SetPos(const double& x, const double& y, bool relative)
+void Player::Move(double dt, bool left)
 {
-	if (relative)
-	{
-		this->x += x;
+	int dir = 1;
+	if (left) dir *= -1;
 
-		double dist = 0;
-
-		while (dist < y)
-		{
-			int size = collisionTable->GetSize();
-			for (int i = 0; i < size; i++)
-			{
-				if (rect.Intersect(collisionTable->GetData(i).GetRect()))
-				{
-					break;
-				}
-			}
-
-			if (y >= 1)
-			{
-				this->y +
-			}
-			else
-			{
-
-			}
-		}
-
-		//this->y += y;
-		return;
-	}
-
-	this->x = x;
-	this->y = y;
-}
-
-void Player::OnUpdate(double deltaTime)
-{
-	vSpeed += gravityPower * deltaTime;
-
-	if (vSpeed > gravityPower)
-		vSpeed = gravityPower;
-
-	SetPos(0, vSpeed, true);
+	hSpeed += moveAccel * dir * dt;
 }
 
 void Player::Jump()
 {
+	if (!isGrounded)
+			return;
+
 	vSpeed = -jumpPower;
+	isGrounded = false;
 }
 
-void Player::SetCollisionTable(DataList<MyObject>* t)
+void Player::OnUpdate(double dt)
 {
-	this->collisionTable = t;
+	// 공중일 경우
+	if (!isGrounded) vSpeed += gravityPower * dt;
+
+	if (vSpeed > gravityMax) vSpeed = gravityMax;
+
+	if (hSpeed > 0)
+	{
+		hSpeed -= hFriction * dt;
+		if (hSpeed < 0) hSpeed = 0;
+	}
+	if (hSpeed < 0)
+	{
+		hSpeed += hFriction * dt;
+		if (hSpeed > 0) hSpeed = 0;
+	}
+
+	if (hSpeed > moveSpeedMax) hSpeed = moveSpeedMax;
+	if (hSpeed < -moveSpeedMax) hSpeed = -moveSpeedMax;
+
+	x += hSpeed * dt * 100;
+	y += vSpeed * dt * 100;
+}
+
+void Player::SetGrounded(bool b)
+{
+	isGrounded = b;
+}
+
+bool Player::GetGrounded()
+{
+	return isGrounded;
+}
+
+Gdiplus::Rect Player::GetRect()
+{
+	return Gdiplus::Rect((INT)x, (INT)y, 32, 32);
+}
+
+double Player::GetHSpeed()
+{
+	return hSpeed;
+}
+
+void Player::ResetHSpeed()
+{
+	hSpeed = 0;
+}
+
+void Player::ResetVspeed()
+{
+	vSpeed = 0;
 }
