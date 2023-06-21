@@ -621,7 +621,7 @@ void Input(double deltaTime)
 	if (!gameStart)
 		return;
 
-	if (OnKey(VK_SPACE))
+	if (OnKey(VK_SPACE) || OnKey(VK_UP))
 		player->Jump();
 	if (OnKey(VK_RIGHT))
 		player->Move(deltaTime, false);
